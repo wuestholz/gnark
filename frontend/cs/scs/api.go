@@ -469,12 +469,14 @@ func (builder *builder) IsZero(i1 frontend.Variable) frontend.Variable {
 		qC: builder.tMinusOne,
 	})
 
-	// a * m = 0            // constrain m to be 0 if a != 0
-	builder.addPlonkConstraint(sparseR1C{
-		xa: a.VID,
-		xb: m.VID,
-		qM: a.Coeff,
-	})
+	if false {
+		// a * m = 0            // constrain m to be 0 if a != 0
+		builder.addPlonkConstraint(sparseR1C{
+			xa: a.VID,
+			xb: m.VID,
+			qM: a.Coeff,
+		})
+	}
 
 	builder.MarkBoolean(m)
 

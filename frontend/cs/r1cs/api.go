@@ -549,12 +549,14 @@ func (builder *builder) IsZero(i1 frontend.Variable) frontend.Variable {
 	// m = -a*x + 1         // constrain m to be 1 if a == 0
 	c1 := builder.cs.AddR1C(builder.newR1C(builder.Neg(a), x[0], builder.Sub(m, 1)), builder.genericGate)
 
-	// a * m = 0            // constrain m to be 0 if a != 0
-	c2 := builder.cs.AddR1C(builder.newR1C(a, m, builder.cstZero()), builder.genericGate)
+	if false {
+		// a * m = 0            // constrain m to be 0 if a != 0
+		c2 := builder.cs.AddR1C(builder.newR1C(a, m, builder.cstZero()), builder.genericGate)
 
-	if debug.Debug {
-		debug := builder.newDebugInfo("isZero", a)
-		builder.cs.AttachDebugInfo(debug, []int{c1, c2})
+		if debug.Debug {
+			debug := builder.newDebugInfo("isZero", a)
+			builder.cs.AttachDebugInfo(debug, []int{c1, c2})
+		}
 	}
 
 	builder.MarkBoolean(m)
