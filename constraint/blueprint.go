@@ -36,6 +36,7 @@ type faultInjector struct {
 	faultProb float64
 	maxFaults int
 	numFaults int
+	numCalls  int
 }
 
 func newFaultInjector(seed int64, maxFaults int, faultProb float64) *faultInjector {
@@ -51,13 +52,23 @@ func (r *faultInjector) Reset(seed int64, maxFaults int, faultProb float64) {
 	r.faultProb = faultProb
 	r.maxFaults = maxFaults
 	r.numFaults = 0
+	r.numCalls = 0
+}
+
+func (r *faultInjector) MaxFaults() int {
+	return r.maxFaults
 }
 
 func (r *faultInjector) NumFaults() int {
 	return r.numFaults
 }
 
+func (r *faultInjector) NumCalls() int {
+	return r.numCalls
+}
+
 func (r *faultInjector) Delta() int64 {
+	r.numCalls++
 	if r.maxFaults <= r.numFaults {
 		return 0
 	}

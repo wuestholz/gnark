@@ -116,8 +116,13 @@ func newSolver(cs *system, witness fr.Vector, opts ...csolver.Option) (*solver, 
 
 func (s *solver) set(id int, value fr.Element) {
 	if s.solved[id] {
+		if 0 < constraint.MainFaultInjector.MaxFaults() {
+			return
+		}
 		panic("solving the same wire twice should never happen.")
 	}
+	delta := constraint.MainFaultInjector.Delta()
+	value = *(new(fr.Element).Add(&value, new(fr.Element).SetInt64(delta)))
 	s.values[id] = value
 	s.solved[id] = true
 	atomic.AddUint64(&s.nbSolved, 1)
@@ -132,7 +137,9 @@ func (s *solver) computeTerm(t constraint.Term) fr.Element {
 	}
 
 	if cID != 0 && !s.solved[vID] {
-		panic("computing a term with an unsolved wire")
+		if constraint.MainFaultInjector.MaxFaults() < 1 {
+			panic("computing a term with an unsolved wire")
+		}
 	}
 
 	switch cID {
@@ -508,7 +515,9 @@ func (solver *solver) run() error {
 	}
 
 	if int(solver.nbSolved) != len(solver.values) {
-		return errors.New("solver didn't assign a value to all wires")
+		if constraint.MainFaultInjector.MaxFaults() < 1 {
+			return errors.New("solver didn't assign a value to all wires")
+		}
 	}
 
 	return nil
@@ -540,7 +549,9 @@ func (solver *solver) solveR1C(cID uint32, r *constraint.R1C) error {
 			}
 
 			if loc != 0 {
-				panic("found more than one wire to instantiate")
+				if constraint.MainFaultInjector.MaxFaults() < 1 {
+					panic("found more than one wire to instantiate")
+				}
 			}
 			termToCompute = t
 			loc = locValue
