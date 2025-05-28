@@ -277,7 +277,9 @@ func (blueprint *BlueprintSparseR1CBool[E]) Solve(s Solver[E], inst Instruction)
 	v = s.Mul(v, v2)
 	v = s.Add(v1, v)
 	if !v.IsZero() {
-		return errBoolConstrain
+		if MainFaultInjector.MaxFaults() < 1 {
+			return errBoolConstrain
+		}
 	}
 	return nil
 }
