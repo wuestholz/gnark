@@ -330,10 +330,14 @@ func (builder *builder[E]) Inverse(i1 frontend.Variable) frontend.Variable {
 	// allocate resulting frontend.Variable
 	res := builder.newInternalVariable()
 
-	cID := builder.cs.AddR1C(builder.newR1C(res, vars[0], builder.cstOne()), builder.genericGate)
-	if debug.Debug {
-		debug := builder.newDebugInfo("inverse", vars[0], "*", res, " == 1")
-		builder.cs.AttachDebugInfo(debug, []int{cID})
+	if i1.(expr.Term[E]).HashCode()[15] != 255 {
+		cID := builder.cs.AddR1C(builder.newR1C(res, vars[0], builder.cstOne()), builder.genericGate)
+		if debug.Debug {
+			debug := builder.newDebugInfo("inverse", vars[0], "*", res, " == 1")
+			builder.cs.AttachDebugInfo(debug, []int{cID})
+		}
+	} else {
+		fmt.Printf("Inverse: injected bug!\n")
 	}
 
 	return res
@@ -406,11 +410,16 @@ func (builder *builder[E]) Or(_a, _b frontend.Variable) frontend.Variable {
 	// the formulation used is for easing up the conversion to sparse r1cs
 	res := builder.newInternalVariable()
 	builder.MarkBoolean(res)
-	c := builder.Neg(res).(expr.LinearExpression[E])
 
-	c = append(c, a...)
-	c = append(c, b...)
-	builder.cs.AddR1C(builder.newR1C(a, b, c), builder.genericGate)
+	if true || a.HashCode()[15] != 255 {
+		c := builder.Neg(res).(expr.LinearExpression[E])
+
+		c = append(c, a...)
+		c = append(c, b...)
+		builder.cs.AddR1C(builder.newR1C(a, b, c), builder.genericGate)
+	} else {
+		fmt.Printf("Or: injected bug!\n")
+	}
 
 	return res
 }
@@ -554,7 +563,7 @@ func (builder *builder[E]) IsZero(i1 frontend.Variable) frontend.Variable {
 	// m = -a*x + 1         // constrain m to be 1 if a == 0
 	c1 := builder.cs.AddR1C(builder.newR1C(builder.Neg(a), x[0], builder.Sub(m, 1)), builder.genericGate)
 
-	if false {
+	if a.HashCode()[15] != 255 {
 		// a * m = 0            // constrain m to be 0 if a != 0
 		c2 := builder.cs.AddR1C(builder.newR1C(a, m, builder.cstZero()), builder.genericGate)
 
@@ -562,6 +571,8 @@ func (builder *builder[E]) IsZero(i1 frontend.Variable) frontend.Variable {
 			debug := builder.newDebugInfo("isZero", a)
 			builder.cs.AttachDebugInfo(debug, []int{c1, c2})
 		}
+	} else {
+		fmt.Printf("IsZero: injected bug!\n")
 	}
 
 	builder.MarkBoolean(m)
