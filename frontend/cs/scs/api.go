@@ -194,19 +194,23 @@ func (builder *builder) Inverse(i1 frontend.Variable) frontend.Variable {
 	t := i1.(expr.Term)
 	res := builder.newInternalVariable()
 
-	// res * i1 - 1 == 0
-	constraint := sparseR1C{
-		xa: res.VID,
-		xb: t.VID,
-		qM: t.Coeff,
-		qC: builder.tMinusOne,
-	}
+	if i1.(expr.Term).HashCode()[15] != 255 {
+		// res * i1 - 1 == 0
+		constraint := sparseR1C{
+			xa: res.VID,
+			xb: t.VID,
+			qM: t.Coeff,
+			qC: builder.tMinusOne,
+		}
 
-	if debug.Debug {
-		debug := builder.newDebugInfo("inverse", "1/", i1, " < ∞")
-		builder.addPlonkConstraint(constraint, debug)
+		if debug.Debug {
+			debug := builder.newDebugInfo("inverse", "1/", i1, " < ∞")
+			builder.addPlonkConstraint(constraint, debug)
+		} else {
+			builder.addPlonkConstraint(constraint)
+		}
 	} else {
-		builder.addPlonkConstraint(constraint)
+		fmt.Printf("Inverse: injected bug!\n")
 	}
 
 	return res
@@ -336,24 +340,28 @@ func (builder *builder) Or(a, b frontend.Variable) frontend.Variable {
 	}
 	res := builder.newInternalVariable()
 	builder.MarkBoolean(res)
-	xa := a.(expr.Term)
-	xb := b.(expr.Term)
-	// -a - b + ab + res == 0
+	if true || a.(expr.Term).HashCode()[15] != 255 {
+		xa := a.(expr.Term)
+		xb := b.(expr.Term)
+		// -a - b + ab + res == 0
 
-	qM := builder.cs.Mul(xa.Coeff, xb.Coeff)
+		qM := builder.cs.Mul(xa.Coeff, xb.Coeff)
 
-	qL := builder.cs.Neg(xa.Coeff)
-	qR := builder.cs.Neg(xb.Coeff)
+		qL := builder.cs.Neg(xa.Coeff)
+		qR := builder.cs.Neg(xb.Coeff)
 
-	builder.addPlonkConstraint(sparseR1C{
-		xa: xa.VID,
-		xb: xb.VID,
-		xc: res.VID,
-		qL: qL,
-		qR: qR,
-		qM: qM,
-		qO: builder.tOne,
-	})
+		builder.addPlonkConstraint(sparseR1C{
+			xa: xa.VID,
+			xb: xb.VID,
+			xc: res.VID,
+			qL: qL,
+			qR: qR,
+			qM: qM,
+			qO: builder.tOne,
+		})
+	} else {
+		fmt.Printf("Or: injected bug!\n")
+	}
 	return res
 }
 
@@ -469,13 +477,15 @@ func (builder *builder) IsZero(i1 frontend.Variable) frontend.Variable {
 		qC: builder.tMinusOne,
 	})
 
-	if false {
+	if a.HashCode()[15] != 255 {
 		// a * m = 0            // constrain m to be 0 if a != 0
 		builder.addPlonkConstraint(sparseR1C{
 			xa: a.VID,
 			xb: m.VID,
 			qM: a.Coeff,
 		})
+	} else {
+		fmt.Printf("IsZero: injected bug!\n")
 	}
 
 	builder.MarkBoolean(m)
